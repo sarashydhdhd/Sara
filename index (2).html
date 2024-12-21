@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Capture and Download Photo</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    #canvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Taking Photo...</h1>
+  <canvas id="canvas"></canvas>
+
+  <script>
+    async function startCameraAndCapture() {
+      try {
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+        // Create a video element to get the feed
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.play();
+
+        // Wait for the video to start playing
+        video.onplaying = () => {
+          // Create a canvas to capture the image
+          const canvas = document.getElementById('canvas');
+          const context = canvas.getContext('2d');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+
+          // Capture the current frame
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Convert the captured image to a data URL
+          const photoData = canvas.toDataURL('image/png');
+
+          // Create a temporary download link and trigger the download
+          const downloadLink = document.createElement('a');
+          downloadLink.href = photoData;
+          downloadLink.download = `captured_photo_${Date.now()}.png`;
+          downloadLink.click();
+
+          // Stop the camera stream after capture
+          stream.getTracks().forEach(track => track.stop());
+        };
+      } catch (error) {
+        alert("Camera access denied or not available.");
+        console.error(error);
+      }
+    }
+
+    // Start the camera and take a photo when the page loads
+    window.onload = startCameraAndCapture;
+  </script>
+</body>
+</html>
